@@ -1,0 +1,87 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Net.Sockets;
+using System.Text.Json;
+using System.Threading.Tasks;
+
+namespace AuctionClient
+{
+    // Exact match with your JSON fields
+    public class Car
+    {
+        public string Brand { get; set; }
+        public string Model { get; set; }
+        public int Year { get; set; }
+        public int StartingPrice { get; set; }
+        public string ImagePath { get; set; }
+    }
+
+    class Program
+    {
+        static async Task Main(string[] args)
+        {
+            const string serverIp = "127.0.0.1";
+            const int port = 5000;
+
+            try
+            {
+                // 1. Loading your provided JSON data
+                string jsonFileData = File.ReadAllText("cars.json");
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var availableCars = JsonSerializer.Deserialize<List<Car>>(jsonFileData, options);
+
+                using TcpClient client = new TcpClient();
+                await client.ConnectAsync(serverIp, port);
+                Console.WriteLine("[CLIENT] Connected to Turbo-Auction Server!");
+
+                // Handle server broadcasts asynchronously (The Benefit)
+                _ = Task.Run(() => ReceiveMessages(client));
+
+                Console.WriteLine("\n--- Available Cars for Auction ---");
+                for (int i = 0; i < availableCars.Count; i++)
+                {
+                    Console.WriteLine($"{i + 1}. {availableCars[i].Brand} {availableCars[i].Model} ({availableCars[i].Year}) - Start: ${availableCars[i].StartingPrice}");
+                }
+
+                while (true)
+                {
+                    Console.WriteLine("\nEnter car number to place a bid (or 'exit'):");
+                    string choice = Console.ReadLine();
+                    if (choice?.ToLower() == "exit") break;
+
+                    if (int.TryParse(choice, out int index) && index > 0 && index <= availableCars.Count)
+                    {
+                        var selectedCar = availableCars[index - 1];
+
+                        // Serialize the full object as a JSON string (The Flow)
+                        string jsonString = JsonSerializer.Serialize(selectedCar);
+
+                        var writer = new StreamWriter(client.GetStream()) { AutoFlush = true };
+                        await writer.WriteLineAsync(jsonString); // Asynchronous send
+
+                        Console.WriteLine($"[SENT] Bid placed for {selectedCar.Brand} {selectedCar.Model}!");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] {ex.Message}");
+            }
+        }
+
+        private static async Task ReceiveMessages(TcpClient client)
+        {
+            var reader = new StreamReader(client.GetStream());
+            while (true)
+            {
+                // Non-blocking read (The Task)
+                string message = await reader.ReadLineAsync();
+                if (message != null)
+                {
+                    Console.WriteLine($"\n[SERVER NOTIFICATION]: {message}");
+                }
+            }
+        }
+    }
+}
