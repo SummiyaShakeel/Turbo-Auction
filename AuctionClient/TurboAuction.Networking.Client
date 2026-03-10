@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace AuctionClient
 {
-    // Exact match with your JSON fields
+
     public class Car
     {
         public string Brand { get; set; }
@@ -26,7 +26,7 @@ namespace AuctionClient
 
             try
             {
-                // 1. Loading your provided JSON data
+                
                 string jsonFileData = File.ReadAllText("cars.json");
                 var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
                 var availableCars = JsonSerializer.Deserialize<List<Car>>(jsonFileData, options);
@@ -35,7 +35,7 @@ namespace AuctionClient
                 await client.ConnectAsync(serverIp, port);
                 Console.WriteLine("[CLIENT] Connected to Turbo-Auction Server!");
 
-                // Handle server broadcasts asynchronously (The Benefit)
+                
                 _ = Task.Run(() => ReceiveMessages(client));
 
                 Console.WriteLine("\n--- Available Cars for Auction ---");
@@ -54,11 +54,11 @@ namespace AuctionClient
                     {
                         var selectedCar = availableCars[index - 1];
 
-                        // Serialize the full object as a JSON string (The Flow)
+                       
                         string jsonString = JsonSerializer.Serialize(selectedCar);
 
                         var writer = new StreamWriter(client.GetStream()) { AutoFlush = true };
-                        await writer.WriteLineAsync(jsonString); // Asynchronous send
+                        await writer.WriteLineAsync(jsonString); 
 
                         Console.WriteLine($"[SENT] Bid placed for {selectedCar.Brand} {selectedCar.Model}!");
                     }
@@ -75,7 +75,7 @@ namespace AuctionClient
             var reader = new StreamReader(client.GetStream());
             while (true)
             {
-                // Non-blocking read (The Task)
+                
                 string message = await reader.ReadLineAsync();
                 if (message != null)
                 {
