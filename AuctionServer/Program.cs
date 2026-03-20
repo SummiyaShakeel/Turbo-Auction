@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.ConstrainedExecution;
 using System.Threading.Tasks;
 
 namespace AuctionServer
@@ -66,8 +67,29 @@ namespace AuctionServer
 
         private static async Task HandleClientCommunications(TcpClient client)
         {
-            // This is where Zunaina's JSON packets will be received later
-            // For now, it keeps the connection alive
+            var reader = new System.IO.StreamReader(client.GetStream());
+            while (true)
+            {
+                try
+                {
+                    string jsonReceived = await reader.ReadLineAsync();
+                    if (jsonReceived != null)
+                    {
+                        // Turn the JSON string back into a Car object
+                        var bidData = System.Text.Json.JsonSerializer.Deserialize<Car>(jsonReceived);
+
+                        Console.WriteLine($"[BID RECEIVED] New bid for: {bidData.Brand} {bidData.Model} at ${bidData.StartingPrice}");
+
+                        // Week 10: Broadcast this bid to EVERYONE else so they see the update
+                        BroadcastMessage($"A teammate just placed a bid on the {bidData.Brand} {bidData.Model}!");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[DISCONNECT] A teammate has left the auction.");
+                    break;
+                }
+            }
         }
 
         private static void BroadcastMessage(string message)
