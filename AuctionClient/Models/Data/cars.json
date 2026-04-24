@@ -1,0 +1,72 @@
+﻿[
+  {
+    "Brand": "BMW",
+    "Model": "M4 Competition",
+    "Year": 2023,
+    "StartingPrice": 85000,
+    "ImagePath": "Images/bmw_m4.jpg"
+  },
+  {
+    "Brand": "Audi",
+    "Model": "RS7",
+    "Year": 2022,
+    "StartingPrice": 120000,
+    "ImagePath": "Images/audi_rs7.jpg"
+  },
+  {
+    "Brand": "Mercedes",
+    "Model": "AMG GT",
+    "Year": 2023,
+    "StartingPrice": 150000,
+    "ImagePath": "Images/mercedes_amg_gt.jpg"
+  },
+  {
+    "Brand": "Porsche",
+    "Model": "911 Carrera",
+    "Year": 2022,
+    "StartingPrice": 130000,
+    "ImagePath": "Images/porsche_911.jpg"
+  },
+  {
+    "Brand": "Lexus",
+    "Model": "LC500",
+    "Year": 2023,
+    "StartingPrice": 95000,
+    "ImagePath": "Images/lexus_lc500.jpg"
+  },
+  {
+    "Brand": "Tesla",
+    "Model": "Model S Plaid",
+    "Year": 2024,
+    "StartingPrice": 110000,
+    "ImagePath": "Images/tesla_model_s.jpg"
+  },
+  {
+    "Brand": "Range Rover",
+    "Model": "Sport SV",
+    "Year": 2023,
+    "StartingPrice": 140000,
+    "ImagePath": "Images/range_rover_sport.jpg"
+  },
+  {
+    "Brand": "Bentley",
+    "Model": "Continental GT",
+    "Year": 2022,
+    "StartingPrice": 220000,
+    "ImagePath": "Images/bentley_continental.jpg"
+  },
+  {
+    "Brand": "Lamborghini",
+    "Model": "Huracan",
+    "Year": 2023,
+    "StartingPrice": 260000,
+    "ImagePath": "Images/lamborghini_huracan.jpg"
+  },
+  {
+    "Brand": "Ferrari",
+    "Model": "F8 Tributo",
+    "Year": 2023,
+    "StartingPrice": 300000,
+    "ImagePath": "Images/ferrari_f8.jpg"
+  }
+]
