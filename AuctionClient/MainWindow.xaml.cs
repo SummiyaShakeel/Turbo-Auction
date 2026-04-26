@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
@@ -16,10 +16,13 @@ namespace TurboAuctionWPF
         private List<Car>? cars;
         private DispatcherTimer? _timer;
         private int _timeLeft = 30;
+        private string userName = "Areeba";
 
         public MainWindow()
         {
             InitializeComponent();
+
+            UserStatusText.Text = $"User: {userName}";
 
             LoadCars();
             ShowFirstCar();
@@ -57,15 +60,18 @@ namespace TurboAuctionWPF
             if (cars != null && cars.Count > 0)
             {
                 var car = cars[currentCarIndex];
-                currentPrice = car.StartingPrice;
+                currentPrice = car.CurrentBid;
 
                 CarTitleText.Text = $"{car.Brand} {car.Model} ({car.Year})";
-                CurrentPriceText.Text = $"Starting Price: ${currentPrice}";
+                CategoryText.Text = $"Category: {car.Category}";
+                CurrentPriceText.Text = $"Current Bid: ${car.CurrentBid}";
 
                 try
                 {
                     string fullImagePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, car.ImagePath);
                     CarImage.Source = new BitmapImage(new Uri(fullImagePath, UriKind.Absolute));
+
+                    LiveBadge.Visibility = car.IsLive ? Visibility.Visible : Visibility.Hidden;
                 }
                 catch
                 {
@@ -115,6 +121,26 @@ namespace TurboAuctionWPF
 
             TimerText.Text = $"Time Left: {mm:D2}:{ss:D2}";
             TimerBar.Value = _timeLeft;
+
+            if (_timeLeft <= 10)
+            {
+                TimerText.Foreground = System.Windows.Media.Brushes.Red;
+            }
+            else
+            {
+                TimerText.Foreground = System.Windows.Media.Brushes.White;
+            }
+        }
+
+        private void Login_Click(object sender, RoutedEventArgs e)
+        {
+            if (!string.IsNullOrWhiteSpace(UsernameBox.Text))
+            {
+                userName = UsernameBox.Text.Trim();
+                UserStatusText.Text = $"User: {userName}";
+
+                NotificationList.Items.Insert(0, $"✅ {userName} logged in");
+            }
         }
 
         private void NextCar_Click(object sender, RoutedEventArgs e)
@@ -145,8 +171,25 @@ namespace TurboAuctionWPF
 
         private void PlaceBid_Click(object sender, RoutedEventArgs e)
         {
+            if (cars == null || cars.Count == 0)
+                return;
+
+            var car = cars[currentCarIndex];
+
             currentPrice += 1000;
-            CurrentPriceText.Text = $"Current Price: ${currentPrice}";
+            car.CurrentBid = currentPrice;
+
+            CurrentPriceText.Text = $"Current Bid: ${currentPrice}";
+
+            BidHistoryList.Items.Insert(0,
+                $"{userName} bid ${currentPrice} on {car.Brand} {car.Model}");
+
+            NotificationList.Items.Insert(0,
+                $"🔥 New bid placed by {userName}: ${currentPrice}");
+
+            _timeLeft = 30;
+            TimerBar.Value = 30;
+            UpdateTimerUI();
         }
 
         private void NextCar()
