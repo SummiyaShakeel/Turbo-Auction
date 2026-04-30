@@ -1,208 +1,176 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
+using System.Net.Sockets;
 using System.Text.Json;
+using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Threading;
-using TurboAuctionWPF.Models;
 
 namespace TurboAuctionWPF
 {
     public partial class MainWindow : Window
     {
+        public ObservableCollection<Car> AuctionCars { get; set; } = new ObservableCollection<Car>();
         private int currentCarIndex = 0;
-        private decimal currentPrice;
-        private List<Car>? cars;
-        private DispatcherTimer? _timer;
-        private int _timeLeft = 30;
         private string userName = "Areeba";
+
+        private TcpClient? _client;
+        private StreamWriter? _writer;
+        private StreamReader? _reader;
 
         public MainWindow()
         {
             InitializeComponent();
-
-            UserStatusText.Text = $"User: {userName}";
-
-            LoadCars();
-            ShowFirstCar();
-            StartCountdown();
+            this.DataContext = this;
+            LoadCarsFromLocal();
+            ConnectToServer();
         }
 
-        private void LoadCars()
+        private async void ConnectToServer()
         {
             try
             {
-                string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Models", "Data", "cars.json");
+                _client = new TcpClient();
+                await _client.ConnectAsync("127.0.0.1", 5000);
+                _writer = new StreamWriter(_client.GetStream()) { AutoFlush = true };
+                _reader = new StreamReader(_client.GetStream());
 
-                if (!File.Exists(path))
-                {
-                    MessageBox.Show("cars.json file not found!");
-                    return;
-                }
+                ConnectionStatusDot.Fill = Brushes.LimeGreen;
+                ConnectionStatusText.Text = "Connected";
+                NotificationList.Items.Insert(0, "🌐 Connected to Server!");
 
-                string json = File.ReadAllText(path);
-
-                cars = JsonSerializer.Deserialize<List<Car>>(json,
-                    new JsonSerializerOptions
-                    {
-                        PropertyNameCaseInsensitive = true
-                    });
+                _ = Task.Run(() => ReceiveMessages());
             }
-            catch (Exception ex)
+            catch
             {
-                MessageBox.Show("Error loading cars: " + ex.Message);
+                NotificationList.Items.Insert(0, "⚠️ Offline Mode: No Server Found.");
             }
         }
 
-        private void ShowFirstCar()
+        private async Task ReceiveMessages()
         {
-            if (cars != null && cars.Count > 0)
+            while (_client != null && _client.Connected)
             {
-                var car = cars[currentCarIndex];
-                currentPrice = car.CurrentBid;
-
-                CarTitleText.Text = $"{car.Brand} {car.Model} ({car.Year})";
-                CategoryText.Text = $"Category: {car.Category}";
-                CurrentPriceText.Text = $"Current Bid: ${car.CurrentBid}";
-
                 try
                 {
-                    string fullImagePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, car.ImagePath);
-                    CarImage.Source = new BitmapImage(new Uri(fullImagePath, UriKind.Absolute));
-
-                    LiveBadge.Visibility = car.IsLive ? Visibility.Visible : Visibility.Hidden;
+                    string? msg = await _reader!.ReadLineAsync();
+                    if (msg != null)
+                    {
+                        Dispatcher.Invoke(() => {
+                            if (msg.StartsWith("TIME:")) UpdateTimerUI(msg.Split(':')[1]);
+                            else if (msg.StartsWith("BID_UPDATE:")) HandleIncomingBid(msg.Substring(11));
+                        });
+                    }
                 }
-                catch
+                catch { break; }
+            }
+        }
+
+        private void LoadCarsFromLocal()
+        {
+            try
+            {
+                string jsonPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "cars.json");
+                if (File.Exists(jsonPath))
                 {
-                    MessageBox.Show("Image not found: " + car.ImagePath);
+                    string json = File.ReadAllText(jsonPath);
+                    // Nayi details ke liye options add kiye hain
+                    var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    var list = JsonSerializer.Deserialize<List<Car>>(json, options);
+
+                    if (list != null)
+                    {
+                        AuctionCars.Clear();
+                        foreach (var car in list) AuctionCars.Add(car);
+                        ShowCar();
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("Error: cars.json file nahi mili bin folder mein!");
                 }
             }
+            catch (Exception ex) { MessageBox.Show("JSON Error: " + ex.Message); }
         }
 
-        private void StartCountdown()
+        private void ShowCar()
         {
-            _timeLeft = 30;
+            if (AuctionCars.Count == 0) return;
+            var car = AuctionCars[currentCarIndex];
 
-            TimerBar.Maximum = 30;
-            TimerBar.Value = 30;
+            // Areeba wala design update
+            CarTitleText.Text = $"{car.Brand} {car.Model} ({car.Year})";
+            CurrentPriceText.Text = $"Current Bid: ${car.StartingPrice}";
 
-            UpdateTimerUI();
+            // Nayi details jo file mein hain
+            CategoryText.Text = $"Engine: {car.Engine} | HP: {car.Horsepower}";
+            NotificationList.Items.Insert(0, $"ℹ️ Speed: {car.TopSpeed} | 0-100: {car.Acceleration}");
 
-            _timer = new DispatcherTimer();
-            _timer.Interval = TimeSpan.FromSeconds(1);
-            _timer.Tick += Timer_Tick;
-            _timer.Start();
-        }
-
-        private void Timer_Tick(object? sender, EventArgs e)
-        {
-            _timeLeft--;
-
-            if (_timeLeft <= 0)
+            try
             {
-                _timer?.Stop();
+                string imgPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, car.ImagePath);
+                if (File.Exists(imgPath))
+                    CarImage.Source = new BitmapImage(new Uri(imgPath));
+            }
+            catch { }
+        }
 
-                MessageBox.Show($"Auction Ended!\nWinning Price: ${currentPrice}");
+        private async void PlaceBid_Click(object sender, RoutedEventArgs e)
+        {
+            if (AuctionCars.Count == 0) return;
+            var currentCar = AuctionCars[currentCarIndex];
+            currentCar.StartingPrice += 1000;
+            currentCar.LastBidder = UsernameBox.Text;
 
-                NextCar();
-
-                StartCountdown();
-                return;
+            if (_writer != null)
+            {
+                string bidJson = "BID:" + JsonSerializer.Serialize(currentCar);
+                await _writer.WriteLineAsync(bidJson);
             }
 
-            UpdateTimerUI();
+            BidHistoryList.Items.Insert(0, $"🔥 {userName} bid ${currentCar.StartingPrice} on {currentCar.Brand}");
+            ShowCar();
         }
 
-        private void UpdateTimerUI()
+        // --- Other UI Helpers ---
+        private void UpdateTimerUI(string seconds)
         {
-            int mm = _timeLeft / 60;
-            int ss = _timeLeft % 60;
-
-            TimerText.Text = $"Time Left: {mm:D2}:{ss:D2}";
-            TimerBar.Value = _timeLeft;
-
-            if (_timeLeft <= 10)
-            {
-                TimerText.Foreground = System.Windows.Media.Brushes.Red;
-            }
-            else
-            {
-                TimerText.Foreground = System.Windows.Media.Brushes.White;
-            }
+            TimerText.Text = $"Time Left: 00:{seconds.PadLeft(2, '0')}";
+            if (int.TryParse(seconds, out int s)) TimerBar.Value = s;
         }
 
-        private void Login_Click(object sender, RoutedEventArgs e)
+        private void HandleIncomingBid(string json)
         {
-            if (!string.IsNullOrWhiteSpace(UsernameBox.Text))
+            var updatedCar = JsonSerializer.Deserialize<Car>(json);
+            if (updatedCar != null)
             {
-                userName = UsernameBox.Text.Trim();
-                UserStatusText.Text = $"User: {userName}";
-
-                NotificationList.Items.Insert(0, $"✅ {userName} logged in");
+                NotificationList.Items.Insert(0, $"📢 {updatedCar.LastBidder} bid ${updatedCar.StartingPrice}!");
+                ShowCar();
             }
         }
 
-        private void NextCar_Click(object sender, RoutedEventArgs e)
-        {
-            if (cars == null || cars.Count == 0)
-                return;
+        private void NextCar_Click(object sender, RoutedEventArgs e) { if (currentCarIndex < AuctionCars.Count - 1) { currentCarIndex++; ShowCar(); } }
+        private void PreviousCar_Click(object sender, RoutedEventArgs e) { if (currentCarIndex > 0) { currentCarIndex--; ShowCar(); } }
+        private void Login_Click(object sender, RoutedEventArgs e) { userName = UsernameBox.Text; UserStatusText.Text = "User: " + userName; }
+    }
 
-            currentCarIndex++;
-
-            if (currentCarIndex >= cars.Count)
-                currentCarIndex = 0;
-
-            ShowFirstCar();
-        }
-
-        private void PreviousCar_Click(object sender, RoutedEventArgs e)
-        {
-            if (cars == null || cars.Count == 0)
-                return;
-
-            currentCarIndex--;
-
-            if (currentCarIndex < 0)
-                currentCarIndex = cars.Count - 1;
-
-            ShowFirstCar();
-        }
-
-        private void PlaceBid_Click(object sender, RoutedEventArgs e)
-        {
-            if (cars == null || cars.Count == 0)
-                return;
-
-            var car = cars[currentCarIndex];
-
-            currentPrice += 1000;
-            car.CurrentBid = currentPrice;
-
-            CurrentPriceText.Text = $"Current Bid: ${currentPrice}";
-
-            BidHistoryList.Items.Insert(0,
-                $"{userName} bid ${currentPrice} on {car.Brand} {car.Model}");
-
-            NotificationList.Items.Insert(0,
-                $"🔥 New bid placed by {userName}: ${currentPrice}");
-
-            _timeLeft = 30;
-            TimerBar.Value = 30;
-            UpdateTimerUI();
-        }
-
-        private void NextCar()
-        {
-            if (cars == null || cars.Count == 0)
-                return;
-
-            currentCarIndex++;
-
-            if (currentCarIndex >= cars.Count)
-                currentCarIndex = 0;
-
-            ShowFirstCar();
-        }
+    //[cite: 1] Updated Car Class to match your new JSON file
+    public class Car
+    {
+        public string Brand { get; set; } = "";
+        public string Model { get; set; } = "";
+        public int Year { get; set; }
+        public double StartingPrice { get; set; }
+        public string Engine { get; set; } = "";
+        public int Horsepower { get; set; }
+        public string TopSpeed { get; set; } = "";
+        public string Acceleration { get; set; } = "";
+        public string ImagePath { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string LastBidder { get; set; } = "No one";
+        public string Category { get; set; } = "Luxury"; // Default
     }
 }
