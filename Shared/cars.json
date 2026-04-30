@@ -1,9 +1,18 @@
-﻿[
+[
   {
     "Brand": "BMW",
     "Model": "M4 Competition",
     "Year": 2023,
     "StartingPrice": 85000,
+    "Engine": "3.0L Twin-Turbo Inline-6",
+    "Horsepower": 503,
+    "TopSpeed": "290 km/h",
+    "Acceleration": "3.8 sec",
+    "Transmission": "Automatic",
+    "FuelType": "Petrol",
+    "Description": "A high-performance sports coupe with aggressive design and powerful engine.",
+    "Available": true,
+    "BidCount": 0,
     "ImagePath": "Images/bmw_m4.jpg"
   },
   {
@@ -11,6 +20,15 @@
     "Model": "RS7",
     "Year": 2022,
     "StartingPrice": 120000,
+    "Engine": "4.0L Twin-Turbo V8",
+    "Horsepower": 591,
+    "TopSpeed": "305 km/h",
+    "Acceleration": "3.6 sec",
+    "Transmission": "Automatic",
+    "FuelType": "Petrol",
+    "Description": "A luxury performance car combining speed, comfort, and advanced technology.",
+    "Available": true,
+    "BidCount": 0,
     "ImagePath": "Images/audi_rs7.jpg"
   },
   {
@@ -18,6 +36,15 @@
     "Model": "AMG GT",
     "Year": 2023,
     "StartingPrice": 150000,
+    "Engine": "4.0L Twin-Turbo V8",
+    "Horsepower": 523,
+    "TopSpeed": "310 km/h",
+    "Acceleration": "3.7 sec",
+    "Transmission": "Automatic",
+    "FuelType": "Petrol",
+    "Description": "A premium sports car known for its luxury interior and powerful performance.",
+    "Available": true,
+    "BidCount": 0,
     "ImagePath": "Images/mercedes_amg_gt.jpg"
   },
   {
@@ -25,6 +52,15 @@
     "Model": "911 Carrera",
     "Year": 2022,
     "StartingPrice": 130000,
+    "Engine": "3.0L Twin-Turbo Flat-6",
+    "Horsepower": 379,
+    "TopSpeed": "293 km/h",
+    "Acceleration": "4.2 sec",
+    "Transmission": "Automatic",
+    "FuelType": "Petrol",
+    "Description": "An iconic sports car with excellent handling and timeless design.",
+    "Available": true,
+    "BidCount": 0,
     "ImagePath": "Images/porsche_911.jpg"
   },
   {
@@ -32,6 +68,15 @@
     "Model": "LC500",
     "Year": 2023,
     "StartingPrice": 95000,
+    "Engine": "5.0L V8",
+    "Horsepower": 471,
+    "TopSpeed": "270 km/h",
+    "Acceleration": "4.4 sec",
+    "Transmission": "Automatic",
+    "FuelType": "Petrol",
+    "Description": "A luxury coupe offering smooth performance and premium comfort.",
+    "Available": true,
+    "BidCount": 0,
     "ImagePath": "Images/lexus_lc500.jpg"
   },
   {
@@ -39,6 +84,15 @@
     "Model": "Model S Plaid",
     "Year": 2024,
     "StartingPrice": 110000,
+    "Engine": "Electric Motor",
+    "Horsepower": 1020,
+    "TopSpeed": "322 km/h",
+    "Acceleration": "2.1 sec",
+    "Transmission": "Automatic",
+    "FuelType": "Electric",
+    "Description": "A cutting-edge electric sedan with extreme acceleration and advanced technology.",
+    "Available": true,
+    "BidCount": 0,
     "ImagePath": "Images/tesla_model_s.jpg"
   },
   {
@@ -46,6 +100,15 @@
     "Model": "Sport SV",
     "Year": 2023,
     "StartingPrice": 140000,
+    "Engine": "4.4L Twin-Turbo V8",
+    "Horsepower": 626,
+    "TopSpeed": "290 km/h",
+    "Acceleration": "3.6 sec",
+    "Transmission": "Automatic",
+    "FuelType": "Petrol",
+    "Description": "A luxury SUV with powerful performance and off-road capabilities.",
+    "Available": true,
+    "BidCount": 0,
     "ImagePath": "Images/range_rover_sport.jpg"
   },
   {
@@ -53,6 +116,15 @@
     "Model": "Continental GT",
     "Year": 2022,
     "StartingPrice": 220000,
+    "Engine": "6.0L W12",
+    "Horsepower": 650,
+    "TopSpeed": "333 km/h",
+    "Acceleration": "3.5 sec",
+    "Transmission": "Automatic",
+    "FuelType": "Petrol",
+    "Description": "A luxury grand tourer combining elegance with high-speed performance.",
+    "Available": true,
+    "BidCount": 0,
     "ImagePath": "Images/bentley_continental.jpg"
   },
   {
@@ -60,6 +132,15 @@
     "Model": "Huracan",
     "Year": 2023,
     "StartingPrice": 260000,
+    "Engine": "5.2L V10",
+    "Horsepower": 631,
+    "TopSpeed": "325 km/h",
+    "Acceleration": "2.9 sec",
+    "Transmission": "Automatic",
+    "FuelType": "Petrol",
+    "Description": "A supercar known for its aggressive styling and extreme performance.",
+    "Available": true,
+    "BidCount": 0,
     "ImagePath": "Images/lamborghini_huracan.jpg"
   },
   {
@@ -67,6 +148,15 @@
     "Model": "F8 Tributo",
     "Year": 2023,
     "StartingPrice": 300000,
+    "Engine": "3.9L Twin-Turbo V8",
+    "Horsepower": 710,
+    "TopSpeed": "340 km/h",
+    "Acceleration": "2.9 sec",
+    "Transmission": "Automatic",
+    "FuelType": "Petrol",
+    "Description": "A high-performance Italian supercar with exceptional speed and design.",
+    "Available": true,
+    "BidCount": 0,
     "ImagePath": "Images/ferrari_f8.jpg"
   }
 ]
